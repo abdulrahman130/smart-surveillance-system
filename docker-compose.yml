@@ -1,0 +1,62 @@
+﻿version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: smart_surveillance
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - surveillance_network
+
+  django:
+    build: ./1_django_backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./1_django_backend:/app
+    environment:
+      - DATABASE_URL=postgresql://admin:admin123@postgres:5432/smart_surveillance
+      - DEBUG=True
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - surveillance_network
+
+  streamlit:
+    build: ./2_streamlit_dashboard
+    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+    volumes:
+      - ./2_streamlit_dashboard:/app
+    environment:
+      - DJANGO_API_URL=http://django:8000/api
+    ports:
+      - "8501:8501"
+    depends_on:
+      - django
+    networks:
+      - surveillance_network
+
+  ai_processor:
+    build: ./3_ai_processing
+    volumes:
+      - ./3_ai_processing:/app
+    environment:
+      - DJANGO_API_URL=http://django:8000/api
+    depends_on:
+      - django
+    networks:
+      - surveillance_network
+
+volumes:
+  postgres_data:
+
+networks:
+  surveillance_network:
+    driver: bridge

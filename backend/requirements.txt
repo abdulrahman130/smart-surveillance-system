@@ -1,0 +1,10 @@
+asgiref==3.11.0
+channels==4.0.0
+channels-redis==4.1.0
+Django==4.2
+djangorestframework==3.14.0
+msgpack==1.1.2
+python-dotenv==1.2.1
+pytz==2025.2
+redis==7.1.0
+sqlparse==0.5.4
